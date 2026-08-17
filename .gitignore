@@ -1,0 +1,60 @@
+# ─── Hệ điều hành / editor ────────────────────────────────────────────────
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*~
+
+# ─── Node ─────────────────────────────────────────────────────────────────
+node_modules/
+.npm/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# ─── Bí mật / cấu hình máy cá nhân ────────────────────────────────────────
+.env
+.env.*
+*.pem
+*.key
+
+# Skill dùng chung (.claude/skills/) thì commit; riêng file này là của máy mình.
+.claude/settings.local.json
+
+# ─── Video tham chiếu (đầu vào, của người khác) ───────────────────────────
+# Chỉ dùng để đo đạc — không bao giờ đưa footage/nhạc của người ta vào repo.
+refs/
+/*.mp4
+/*.MP4
+/*.mov
+/*.MOV
+/*.webm
+
+# ─── Kết quả đo đạc của tools/measure.mjs ─────────────────────────────────
+# Sinh lại được bằng: node tools/measure.mjs <ref.mp4> --out .measure
+.measure/
+.measure*/
+
+# ─── Video project (nội dung riêng, không share) ──────────────────────────
+# Repo chỉ share phần dùng chung: kit/ + tools/ + skill.
+# Mỗi project trong videos/ scaffold lại được bằng: node tools/new-video.mjs <name>
+videos/
+
+# Muốn kèm 1 project làm ví dụ thì thêm tay, ignore không chặn:
+#   git add -f videos/kit-smoketest
+
+# ─── Audio ────────────────────────────────────────────────────────────────
+# .wav là bản trung gian của tools/sfx.mjs --wav → bỏ.
+*.wav
+
+# ─── Tạm ─────────────────────────────────────────────────────────────────
+tmp/
+*.tmp
+*.log

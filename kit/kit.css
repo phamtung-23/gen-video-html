@@ -1,0 +1,619 @@
+/* kit.css — shared component layer for dark technical explainers.
+   Copied into each project as kit/kit.css and linked root-relative:
+       <link rel="stylesheet" href="kit/kit.css">
+   A path that traverses above the project root ("../../kit/kit.css") is rejected by
+   `hyperframes lint` (invalid_parent_traversal_in_asset_path) and 404s in Studio,
+   which is why every project carries its own copy. */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #090b12;
+  --panel: #0e1017;
+  --card: #191a21;
+  --card-hi: #1d2027;
+  --card-dim: #14151b;
+  --chip: #16171e;
+  --bd: #262932;
+  --tx: #ffffff;
+  --card-tx: #e2e5ed;
+  --mute: #8c909b;
+  --faint: #878b96;
+  --dim: #9aa0ad;
+  --sub: #8f9ad8;
+  --run: #4f8ef7;
+  --ok: #3ecf8e;
+  --warn: #eda54a;
+  --fail: #f0555f;
+  --track: #33363d;
+  --curve: #565a7a;
+  --sans: "Montserrat", sans-serif;
+  --mono: "JetBrains Mono", monospace;
+}
+
+html,
+body {
+  width: 1080px;
+  height: 1920px;
+  overflow: hidden;
+  background: var(--bg);
+}
+#root {
+  position: relative;
+  width: 1080px;
+  height: 1920px;
+  overflow: hidden;
+}
+#scene {
+  position: absolute;
+  inset: 0;
+}
+
+/* The full-screen fill must sit on a child, never on the composition root —
+   the producer can drop the root element's own background and render black,
+   while preview and snapshot still look correct. */
+.hf-bg {
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+}
+.hf-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 190px 54px 0;
+}
+
+/* Anything revealed after t=0 must start hidden HERE, in CSS. Its reveal tween runs
+   with immediateRender:false (otherwise a delayed fromTo applies its `from` at build
+   time and the element flashes visible from frame 0), which means the tween sets no
+   initial state at all. Kit.reveal() adds this class for you — do not hand-manage it. */
+.hf-pre {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* ── header ── */
+.hf-title {
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 54px;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: var(--tx);
+  text-align: center;
+}
+.hf-sub {
+  margin-top: 8px;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1.2;
+  color: var(--sub);
+  text-align: center;
+}
+
+/* ── lane badge ── */
+.hf-badge {
+  align-self: flex-start;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 24px;
+  border: 1.5px solid var(--bd);
+  border-radius: 999px;
+  background: #12141b;
+}
+.hf-badge svg {
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
+.hf-badge b {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 21px;
+  letter-spacing: 0.1em;
+}
+.hf-badge em {
+  font-family: var(--sans);
+  font-size: 21px;
+  font-style: normal;
+  color: var(--mute);
+}
+
+/* ── task / operation card ── */
+.hf-card {
+  position: relative;
+  height: 90px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1.5px solid var(--bd);
+  border-radius: 22px;
+  background: var(--card);
+}
+.hf-card--tall {
+  height: 118px;
+  padding: 18px 27px 19px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+}
+.hf-card--tall .hf-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.hf-ico {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid #2b2f38;
+  border-radius: 13px;
+  background: #21242c;
+  color: #7d818d;
+}
+.hf-ico svg {
+  width: 22px;
+  height: 22px;
+}
+.hf-name {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 1.05;
+  color: var(--card-tx);
+}
+
+/* Status labels stack in one zone and cross-fade. They overlap by design, so they
+   carry data-layout-allow-overlap; Kit.card() sets it. */
+.hf-stat {
+  position: relative;
+  height: 23px;
+  margin-top: 2px;
+}
+.hf-st {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 23px;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+}
+
+/* right-hand state indicator: one visible at a time */
+.hf-ind {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  margin-left: auto;
+  align-self: center;
+  flex: none;
+}
+.hf-ind > span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.hf-ind i {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: currentColor;
+}
+.hf-ind svg {
+  width: 26px;
+  height: 26px;
+}
+
+/* ── sequential separator ── */
+.hf-then {
+  height: 33px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  font-family: var(--mono);
+  font-size: 16px;
+  letter-spacing: 0.2em;
+  color: var(--faint);
+}
+.hf-then svg {
+  width: 11px;
+  height: 9px;
+  color: #70747e;
+}
+
+/* ── outcome chip ── */
+.hf-chip {
+  height: 70px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 0 26px;
+  border: 1.5px solid var(--bd);
+  border-radius: 24px;
+  background: var(--chip);
+}
+.hf-chip svg {
+  width: 26px;
+  height: 26px;
+  flex: none;
+}
+.hf-chip b {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 23px;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+}
+.hf-chip em {
+  font-family: var(--sans);
+  font-size: 22px;
+  font-style: normal;
+  color: var(--mute);
+}
+
+/* ── vs divider ── */
+.hf-vs {
+  align-self: center;
+  width: 66px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid #22252d;
+  border-radius: 12px;
+  background: #191c22;
+  font-family: var(--mono);
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  color: #9498a2;
+}
+
+/* ── segmented progress bar ──
+   Segments tween backgroundColor, never scaleX: a CSS initial transform paired with a
+   GSAP transform tween trips lint (gsap_css_transform_conflict), and discrete colour
+   steps read better at feed size anyway. */
+.hf-bar {
+  position: relative;
+  margin-top: auto;
+  height: 10px;
+  display: flex;
+  gap: 8px;
+}
+.hf-seg {
+  flex: 1 1 0;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--track);
+}
+.hf-glow {
+  position: absolute;
+  left: -6px;
+  right: -6px;
+  top: -3px;
+  height: 16px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0);
+  filter: blur(11px);
+}
+
+/* ── arc panel: numbered nodes joined by a sagging dashed curve ── */
+.hf-arc {
+  position: relative;
+  height: 166px;
+  border: 1.5px solid #1c1f28;
+  border-radius: 22px;
+  background: var(--panel);
+  overflow: hidden;
+}
+.hf-curve {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 166px;
+  color: var(--curve);
+}
+.hf-node {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  margin-left: -16px;
+  margin-top: -16px;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid #383c46;
+  border-radius: 999px;
+  background: #23262e;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 19px;
+  color: var(--tx);
+}
+.hf-ring {
+  position: absolute;
+  width: 54px;
+  height: 54px;
+  margin-left: -27px;
+  margin-top: -27px;
+  border: 2px solid currentColor;
+  border-radius: 999px;
+}
+.hf-node-lbl {
+  position: absolute;
+  transform: translateX(-50%);
+  font-family: var(--sans);
+  font-size: 17px;
+  color: var(--dim);
+  white-space: nowrap;
+}
+/* the wrapper carries the path position; the pip carries the look, so the two never
+   fight over the same transform */
+.hf-dot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+}
+.hf-pip {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  margin-top: -8px;
+  border-radius: 999px;
+}
+.hf-mark {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+}
+.hf-mark svg {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  margin-left: -13px;
+  margin-top: -13px;
+}
+
+/* ── caption stack inside a panel: one visible at a time ── */
+.hf-caps {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 28px;
+}
+.hf-cap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 28px;
+  color: #dfe1e6;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ══ ARCHETYPE: swimlane ══
+   Actors are rows, time runs left to right, work is bars that can overlap. Use when the
+   point is WHEN things happen relative to each other — races, locks, backoff, pooling. */
+.hf-swim {
+  position: relative;
+}
+.hf-swim-axis {
+  position: relative;
+  height: 24px;
+}
+.hf-tick {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  font-family: var(--mono);
+  font-size: 16px;
+  color: var(--faint);
+  white-space: nowrap;
+}
+.hf-swim-rows {
+  position: relative;
+}
+.hf-grid {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #1f222a;
+}
+.hf-swim-row {
+  display: flex;
+  align-items: center;
+  height: 62px;
+}
+.hf-swim-row + .hf-swim-row {
+  margin-top: 8px;
+}
+.hf-swim-label {
+  flex: none;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 25px;
+  color: var(--card-tx);
+  white-space: nowrap;
+}
+.hf-swim-track {
+  position: relative;
+  flex: 1;
+  height: 46px;
+  border-radius: 12px;
+  border: 1.5px solid #1e212a;
+  background: #131519;
+}
+/* transform-origin is not `transform`, so pairing it with a GSAP scaleX tween is safe;
+   the collapsed start state is set on the timeline at t=0, never in CSS. */
+.hf-swim-bar {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  border-radius: 8px;
+  transform-origin: left center;
+}
+.hf-swim-bar b {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  margin-top: -11px;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 17px;
+  line-height: 22px;
+  letter-spacing: 0.06em;
+  color: #0c0e13;
+  white-space: nowrap;
+}
+.hf-head {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.34);
+}
+.hf-head::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #fff;
+}
+
+/* ══ ARCHETYPE: stack ══
+   Layers stacked top to bottom with a token that descends and returns. Use for a request
+   travelling through tiers — caches, middleware, the call stack. */
+.hf-stack {
+  position: relative;
+  padding-left: 58px;
+}
+.hf-rail {
+  position: absolute;
+  left: 21px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  background: repeating-linear-gradient(to bottom, #2b2f39 0 6px, transparent 6px 13px);
+}
+.hf-layer {
+  height: 84px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 0 22px;
+  border: 1.5px solid var(--bd);
+  border-radius: 18px;
+  background: var(--card);
+}
+.hf-layer + .hf-layer {
+  margin-top: 8px;
+}
+.hf-layer-name {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 28px;
+  color: var(--card-tx);
+}
+.hf-layer-note {
+  font-family: var(--sans);
+  font-size: 20px;
+  color: var(--mute);
+}
+.hf-verdict {
+  position: relative;
+  margin-left: auto;
+  width: 132px;
+  height: 24px;
+  flex: none;
+}
+.hf-verdict span {
+  position: absolute;
+  right: 0;
+  top: 0;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 24px;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+.hf-token {
+  position: absolute;
+  left: 21px;
+  top: 0;
+  width: 0;
+  height: 0;
+}
+.hf-token i {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  margin-left: -8px;
+  margin-top: -9px;
+  border-radius: 999px;
+  background: #7fb0ff;
+  box-shadow:
+    0 0 10px 3px rgba(79, 142, 247, 0.85),
+    0 0 26px 10px rgba(79, 142, 247, 0.3);
+}
+
+/* ── tone modifiers: one hue, one meaning ── */
+.t-run {
+  color: var(--run);
+}
+.t-ok {
+  color: var(--ok);
+}
+.t-warn {
+  color: var(--warn);
+}
+.t-fail {
+  color: var(--fail);
+}
+.t-mute {
+  color: var(--mute);
+}
+.b-run {
+  border-color: #31486f;
+}
+.b-ok {
+  border-color: #22503c;
+}
+.b-warn {
+  border-color: #5b4529;
+}
+.b-fail {
+  border-color: #5b2730;
+}
