@@ -352,6 +352,315 @@ SHEETS["rate-limiting"] = { dur: 9.15, cues: () => {
   return c;
 } };
 
+/* ── pub-sub ──────────────────────────────────────────────────────────────────
+   Same discipline as the others: the mix makes the argument, it does not decorate it.
+
+   Act 1 is the publisher working three times — three departure clicks 180ms apart and
+   three separate landings, nine hundred milliseconds of effort you can count with your
+   eyes shut. Act 2 replaces all of it with ONE click, one swell, one whoosh, and four
+   confirmations that arrive together. The publisher's own sound goes from a stutter to
+   a single note while the number of answers goes UP; that inversion is the whole idea,
+   and it survives with the screen off.
+
+   Two knocks in between are the services nobody told — the only cues in the piece with
+   no departure in front of them, because nothing was ever sent.
+
+   Pan follows x across the 972-wide graph; pitch follows y, because five subscribers
+   ringing one hub cannot all be told apart by pan alone. EmailService sits highest and
+   answers highest, Warehouse sits lowest and answers lowest.
+
+   These MUST mirror T{}, LEG and the entrance stagger in videos/pub-sub/index.html. */
+SHEETS["pub-sub"] = { dur: 9.15, cues: () => {
+  const T = { send: 1.05, sendGap: 0.18, missed: 2.55, mode2: 3.5, topic: 3.85,
+              publish: 4.5, flare: 5.05, fanout: 5.35, join: 7.15, verdict: 8.05, foot: 8.5 };
+  const LEG = 0.62;
+  const PUB = -0.79; /* x=100 of 972 */
+  const TOPIC = -0.16; /* x=410 */
+  /* [pan from x, pitch from y] per subscriber, in DOM order s0..s4 */
+  const S = [
+    { pan: 0.58, hz: 1319 }, /* EmailService   770, 90  — highest on screen, highest note */
+    { pan: 0.81, hz: 1175 }, /* InvoiceService 880, 310 */
+    { pan: 0.58, hz: 988 },  /* Analytics      770, 530 */
+    { pan: -0.15, hz: 880 }, /* Warehouse      415, 592 — lowest on screen, lowest note */
+    { pan: -0.76, hz: 1047 },/* FraudCheck     115, 452 */
+  ];
+
+  /* entrance: the publisher, then the five services, in DOM order */
+  const c = [{ at: 0.4, v: () => tick(1), g: 0.24, pan: PUB }];
+  S.forEach((s, i) => c.push({ at: 0.45 + i * 0.05, v: () => tick(2 + i), g: 0.22, pan: s.pan }));
+
+  /* ── act 1: three separate calls. Three departures, three arrivals, and the ear
+       counts every one of them. This is the sound act 2 does not make. ── */
+  for (let i = 0; i < 3; i++) {
+    const fire = T.send + i * T.sendGap;
+    c.push({ at: fire, v: () => tick(10 + i), g: 0.3, pan: PUB });
+    c.push({ at: fire + LEG, v: () => pip(S[i].hz), g: 0.26, pan: S[i].pan });
+  }
+
+  /* the two nobody told. No departure precedes these — that absence IS the cue. */
+  c.push({ at: T.missed, v: () => dull(196), g: 0.3, pan: S[3].pan });
+  c.push({ at: T.missed + 0.1, v: () => dull(165), g: 0.3, pan: S[4].pan });
+
+  /* ── act 2: the rewire ── */
+  c.push({ at: T.mode2, v: () => tick(20), g: 0.24, pan: 0.0 });
+  c.push({ at: T.topic, v: () => tick(21), g: 0.26, pan: TOPIC });
+  c.push({ at: T.topic + 0.3, v: () => tut(659, 0.09), g: 0.17, pan: TOPIC }); /* it wires up */
+
+  /* ONE departure, where act 1 needed three. Same voice, same gain, same pan as the
+     first send at 1.05 — nothing about the click changed, only how many there are. */
+  c.push({ at: T.publish, v: () => tick(30), g: 0.3, pan: PUB });
+  /* a sine window peaks at 1.0 but spends most of its length below it, so a swell needs
+     more gain than a percussive cue to sit at the same apparent loudness */
+  c.push({ at: T.flare, v: () => swell(), g: 0.34, pan: TOPIC }); /* the topic takes it */
+  c.push({ at: T.fanout, v: () => whoosh(9), g: 0.2, pan: TOPIC }); /* four copies, one sound */
+
+  /* the confirmations. A 60ms ladder only so four notes are distinguishable — they are
+     a chord, not a sequence, and the whoosh above already said they left together. */
+  const LAND = T.fanout + LEG;
+  for (let i = 0; i < 4; i++)
+    c.push({ at: LAND + i * 0.06, v: () => pip(S[i].hz), g: 0.24, pan: S[i].pan });
+
+  /* ── act 3: a subscriber joins, and the publisher makes no sound at all ── */
+  c.push({ at: T.join, v: () => tut(784, 0.09), g: 0.2, pan: S[4].pan }); /* it subscribes */
+  c.push({ at: T.join + 0.2 + LEG, v: () => pip(S[4].hz), g: 0.26, pan: S[4].pan });
+
+  c.push({ at: T.verdict, v: () => duo(587, 880), g: 0.24, pan: 0.0 }); /* DECOUPLED — ascending */
+  c.push({ at: T.foot, v: () => tick(40), g: 0.13, pan: 0.0 });
+  return c;
+} };
+
+/* ── left-join ────────────────────────────────────────────────────────────────
+   The mix makes the argument. Three lookups establish a three-part rhythm — click
+   (the probe leaves), ping (it found the row), knock (the result row lands) — repeated
+   three times at exactly the same spacing so the ear learns it. The fourth probe opens
+   with the SAME click, at the same gain and the same pan as the other three, and then
+   the ping never comes. Four dull knocks descend the orders table instead, and the
+   piece is silent where the confirmation should have been. That hole is the cue.
+
+   What Dana finally gets is a `tut`, not a `pip`: warm and mid, where every match rang
+   bright. Timbre carries amber-vs-green the way the fill does on screen — the row
+   arrived, it just did not match, and those are not the same event.
+
+   Pan follows x across the 972-wide stage: the users table sits left of centre
+   (pan -0.55), orders right (+0.55), the full-width result table dead centre. Pitch
+   follows y, because four rows one above the other cannot be told apart by pan alone.
+
+   These MUST mirror T{}, HOP and SCAN in videos/left-join/index.html. */
+SHEETS["left-join"] = { dur: 11.0, cues: () => {
+  const T = { p: [1.45, 2.63, 3.81], miss: 5.05, orphan: 7.35, inner: 8.7, chips: 9.5 };
+  const HOP = 0.46;  /* out of the left row, along the gutter, into the right row */
+  const SCAN = 0.19; /* per row, while Dana's probe walks the orders table */
+  const LEFT = -0.55, RIGHT = 0.55;
+  const MATCH = [1, 3, 0];             /* users row i answered by orders row MATCH[i] */
+  const OHZ = [1319, 1175, 988, 880];  /* orders rows, top to bottom */
+  const RHZ = [1047, 988, 880];        /* the three result rows that carry a total */
+
+  /* entrance: the query strip, then the three tables left, right, centre */
+  const c = [
+    { at: 0.14, v: () => tick(1), g: 0.2, pan: 0.0 },
+    { at: 0.22, v: () => tick(2), g: 0.24, pan: LEFT },
+    { at: 0.3, v: () => tick(3), g: 0.24, pan: RIGHT },
+    { at: 0.42, v: () => tick(4), g: 0.22, pan: 0.0 },
+  ];
+
+  /* ── the three that match. click · ping · knock, three times, identically spaced.
+       This is the pattern the fourth probe exists to break. ── */
+  T.p.forEach((at, i) => {
+    c.push({ at, v: () => tick(10 + i), g: 0.3, pan: LEFT });                        /* leaves */
+    c.push({ at: at + HOP, v: () => pip(OHZ[MATCH[i]]), g: 0.26, pan: RIGHT });      /* found  */
+    c.push({ at: at + HOP + 0.16, v: () => tut(RHZ[i], 0.075), g: 0.16, pan: 0.0 }); /* lands  */
+  });
+
+  /* ── Dana. Same click, same gain, same pan as the other three — nothing about the
+       departure changed, which is what makes the missing ping audible. ── */
+  c.push({ at: T.miss, v: () => tick(13), g: 0.3, pan: LEFT });
+  const reach = T.miss + HOP;
+  /* four knocks down the table where one ping should have been */
+  for (let j = 0; j < 4; j++)
+    c.push({ at: reach + SCAN * j, v: () => dull(392 - j * 34), g: 0.24, pan: RIGHT });
+  /* came back empty: two notes, descending */
+  c.push({ at: reach + SCAN * 3 + 0.14, v: () => duo(392, 294, 0.1), g: 0.22, pan: 0.0 });
+  /* kept anyway. A tut, never a pip — the row arrived, it did not match. */
+  c.push({ at: reach + SCAN * 3 + 0.37, v: () => tut(587, 0.13), g: 0.24, pan: 0.0 });
+
+  /* the order nobody could claim. No departure precedes it — nothing ever asked. */
+  c.push({ at: T.orphan, v: () => dull(165), g: 0.3, pan: RIGHT });
+  c.push({ at: T.orphan + 0.1, v: () => whoosh(3), g: 0.13, pan: RIGHT }); /* the strike drawing */
+
+  /* what INNER JOIN would have done — descending, because it is a loss */
+  c.push({ at: T.inner, v: () => duo(523, 392), g: 0.24, pan: 0.0 });
+
+  /* the two counts: one bright, one muted, the same split as green and red */
+  c.push({ at: T.chips, v: () => tut(659, 0.11), g: 0.24, pan: -0.35 });
+  c.push({ at: T.chips + 0.12, v: () => dull(196), g: 0.24, pan: 0.35 });
+  return c;
+} };
+
+/* ── monolith-vs-microservices ─────────────────────────────────────────────────
+   ARCHETYPE: queue, run twice at once. Both architectures are on screen for the whole
+   video, so both are in the mix for the whole video — and the mix separates them by
+   REGISTER, not by pan. The monolith answers in a low octave (G4), microservices in the
+   octave above (G5). Pan follows the slot a request actually lands in, because that part
+   is true; the panels share an x, so panning them apart would not be.
+
+   One arrival, two answers, and you can hear them come apart:
+
+     the two honest requests   both octaves say yes — the architectures agree
+     the spike, ten requests   the LOW octave says yes ten times while the HIGH octave
+                               stops at four and knocks six times. The monolith sounds
+                               like it is coping. It is: it is handing the spike everything.
+     the four retries          the registers swap. The low octave knocks four times and
+                               the high octave answers four times. That flip is the whole
+                               video, and it survives with the screen off.
+
+   These MUST mirror ARR, FLIGHT, the resolver rules and T{} in
+   videos/monolith-vs-microservices/index.html. */
+SHEETS["monolith-vs-microservices"] = { dur: 9.15, cues: () => {
+  const FLIGHT = 0.36;
+  const T = { verdict: 6.0, verdictB: 6.25, foot: 6.9 };
+
+  /* geometry, mirrored so a landing sounds where it lands */
+  const W = 972, BOX_X = 350, PAD = 18, SW = 89.33, GAP = 10;
+  const A_COLS = 6, B_COLS = 4;
+  const A_X = (i) => BOX_X + PAD + (i % A_COLS) * (SW + GAP) + SW / 2;
+  const B_SLOT_X = BOX_X + (W - BOX_X) - PAD - (B_COLS * SW + (B_COLS - 1) * GAP);
+  const B_X = (i) => B_SLOT_X + i * (SW + GAP) + SW / 2;
+  const pan = (x) => (x / W) * 2 - 1;
+  const MOUTH = pan(BOX_X + 22); /* where a refused request bounces */
+
+  const LOW = 392;  /* the monolith's voice */
+  const HIGH = 784; /* microservices, an octave up */
+
+  /* the one arrival list, and the two resolvers */
+  const ARR = [
+    { src: 0, at: 1.05 },
+    { src: 2, at: 1.2 },
+    ...Array.from({ length: 10 }, (_, i) => ({ src: 1, at: 1.45 + i * 0.22 })),
+    { src: 0, at: 4.15 },
+    { src: 2, at: 4.4 },
+    { src: 0, at: 4.95 },
+    { src: 2, at: 5.2 },
+  ];
+  let nextA = 0;
+  const nextB = [0, 0, 0];
+  const RA = ARR.map((a) => (nextA < A_COLS * 2 ? { ...a, slot: nextA++ } : { ...a, slot: null }));
+  const RB = ARR.map((a) => (nextB[a.src] < B_COLS ? { ...a, slot: nextB[a.src]++ } : { ...a, slot: null }));
+
+  const c = [
+    /* entrance: the rails, then both capacities landing together */
+    { at: 0.3, v: () => tick(1), g: 0.16, pan: -0.4 },
+    { at: 0.5, v: () => tut(523, 0.09), g: 0.14, pan: -0.2 },
+    { at: 0.56, v: () => tick(2), g: 0.18, pan: 0.4 },
+  ];
+
+  /* the monolith's answers, low. Gain climbs across the spike: the last thread is loudest
+     because it is the last one. */
+  const nA = RA.filter((x) => x.slot !== null).length;
+  let kA = 0;
+  RA.forEach((a, i) => {
+    if (a.slot !== null) {
+      c.push({ at: a.at + FLIGHT, v: () => pip(LOW), g: 0.15 + (0.09 * kA++) / (nA - 1), pan: pan(A_X(a.slot)) });
+    } else {
+      /* a request the monolith refused — and every one of these is from a feature that
+         never spiked. The lowest, deadest sound in the piece. */
+      c.push({ at: a.at + 0.24, v: () => dull(98), g: 0.3, pan: MOUTH });
+    }
+  });
+  /* the shared pool closing */
+  const lastA = RA.filter((x) => x.slot !== null).pop();
+  c.push({ at: lastA.at + FLIGHT + 0.02, v: () => thud(5), g: 0.3, pan: 0.5 });
+
+  /* microservices' answers, an octave up */
+  RB.forEach((a) => {
+    if (a.slot !== null) c.push({ at: a.at + FLIGHT, v: () => pip(HIGH), g: 0.19, pan: pan(B_X(a.slot)) });
+    else c.push({ at: a.at + 0.24, v: () => dull(196), g: 0.24, pan: MOUTH });
+  });
+  /* payments' own queue closing — higher and lighter than the monolith's thud, because
+     what closed was one queue and not the whole application */
+  const lastPay = RB.filter((x) => x.slot !== null && x.src === 1).pop();
+  c.push({ at: lastPay.at + FLIGHT + 0.02, v: () => duo(523, 415, 0.09), g: 0.2, pan: 0.55 });
+
+  /* the score */
+  c.push({ at: T.verdict, v: () => duo(392, 294, 0.1), g: 0.26, pan: -0.35 }); /* descending */
+  c.push({ at: T.verdictB, v: () => duo(587, 880, 0.115), g: 0.26, pan: 0.35 }); /* ascending */
+  c.push({ at: T.foot, v: () => tick(60), g: 0.15, pan: -0.3 });
+  return c;
+} };
+
+
+/* ── inner-join ───────────────────────────────────────────────────────────────
+   The mix carries the two moves the picture carries, and both survive with the
+   screen off.
+
+   THE FAN-OUT. Every lookup is click (it leaves, panned left where the users table
+   is) · ping (it found the row, panned right, pitched by how far down the orders
+   table that row sits) · tut (the result row lands, dead centre). Four times. The
+   third and fourth results ring the SAME note — 880 — because they came from the
+   same left row, and two rows that sound identical is exactly what a fan-out is.
+   The x2 mark is that note struck twice in a row, nothing else.
+
+   THE DOUBLE CULL. Two knocks at the same instant, the same voice, the same
+   frequency, one hard left and one hard right. left-join's two drops were seconds
+   apart and pitched differently because LEFT JOIN really is asymmetric; here they
+   are one event, so they are one sound, mirrored across the stereo field. Nothing
+   in the piece is simultaneous until this.
+
+   Pan follows x across the 972-wide stage: users left (-0.55), orders right
+   (+0.55), the full-width result table dead centre. Pitch follows y, because rows
+   stacked one above the other cannot be told apart by pan alone.
+
+   These MUST mirror T{}, HOPS, HOP and STUB in videos/inner-join/index.html. */
+SHEETS["inner-join"] = { dur: 10.2, cues: () => {
+  const T = { mark: 5.72, cull: 6.55, chips: 8.3 };
+  const HOP = 0.46;  /* out of the left row, along the gutter, into the right row */
+  const STUB = 0.16; /* a cull probe reaching into the gutter and stopping */
+  const LEFT = -0.55, RIGHT = 0.55;
+  const HOPS = [
+    { u: 0, o: 1, at: 1.4 },
+    { u: 1, o: 3, at: 2.58 },
+    { u: 2, o: 0, at: 3.76 },
+    { u: 2, o: 4, at: 4.94 }, /* the same users row, reaching a second time */
+  ];
+  const OHZ = [1319, 1175, 988, 880, 784]; /* orders rows, top to bottom */
+  /* result rows 2 and 3 are both Cy, so they ring the same note. That repeat is the
+     fan-out; giving the fourth row its own pitch would have hidden it. */
+  const RHZ = [1047, 988, 880, 880];
+
+  /* entrance: the query strip, then the three tables left, right, centre */
+  const c = [
+    { at: 0.14, v: () => tick(1), g: 0.2, pan: 0.0 },
+    { at: 0.22, v: () => tick(2), g: 0.24, pan: LEFT },
+    { at: 0.3, v: () => tick(3), g: 0.24, pan: RIGHT },
+    { at: 0.42, v: () => tick(4), g: 0.22, pan: 0.0 },
+  ];
+
+  /* ── the four matches. click · ping · tut, identically spaced, four times. ── */
+  HOPS.forEach((h, i) => {
+    c.push({ at: h.at, v: () => tick(10 + i), g: 0.3, pan: LEFT });                 /* leaves */
+    c.push({ at: h.at + HOP, v: () => pip(OHZ[h.o]), g: 0.26, pan: RIGHT });        /* found  */
+    c.push({ at: h.at + HOP + 0.16, v: () => tut(RHZ[i], 0.075), g: 0.17, pan: 0 });/* lands  */
+  });
+
+  /* the x2 mark: one note struck twice. The only doubled cue in the piece. */
+  c.push({ at: T.mark, v: () => tut(880, 0.07), g: 0.15, pan: LEFT });
+  c.push({ at: T.mark + 0.12, v: () => tut(880, 0.07), g: 0.15, pan: LEFT });
+
+  /* ── THE DOUBLE CULL. Same voice, same gain, same frequency, same frame — the only
+       difference between the two is which ear it arrives in. ── */
+  c.push({ at: T.cull, v: () => tick(20), g: 0.28, pan: LEFT });
+  c.push({ at: T.cull, v: () => tick(21), g: 0.28, pan: RIGHT });
+  const dead = T.cull + STUB + 0.1;
+  c.push({ at: dead, v: () => dull(196), g: 0.3, pan: LEFT });
+  c.push({ at: dead, v: () => dull(196), g: 0.3, pan: RIGHT });
+  /* the verdict, descending, dead centre — it belongs to neither side */
+  c.push({ at: dead + 0.14, v: () => duo(392, 294, 0.1), g: 0.22, pan: 0.0 });
+
+  /* the two chips: one bright, one muted, the same split as green and red */
+  c.push({ at: T.chips, v: () => tut(659, 0.11), g: 0.24, pan: -0.35 });
+  c.push({ at: T.chips + 0.12, v: () => dull(196), g: 0.24, pan: 0.35 });
+  return c;
+} };
+
 const sheet = SHEETS[name];
 if (!sheet) {
   console.error(`no cue sheet for "${name}". Sheets: ${Object.keys(SHEETS).join(", ")}`);
