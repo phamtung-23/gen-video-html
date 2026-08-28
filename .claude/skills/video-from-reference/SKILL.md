@@ -4,8 +4,10 @@ description: >
   Recreate a reference video (an MP4 the user drops in) as a HyperFrames composition in
   this repo's house style — or build a new topic in that same style. Use whenever the
   user supplies a reference clip and asks for "a video like this", "tương tự video này",
-  or names a topic to render in the established look. Covers measuring the reference,
-  scaffolding against the shared kit, authoring, verifying, and rendering.
+  or names a topic to render in the established look. Also use it when the user asks for
+  a video and supplies NOTHING — no clip, no topic — in which case you propose the topic.
+  Covers measuring the reference, scaffolding against the shared kit, authoring,
+  verifying, and rendering.
 ---
 
 # Video from a reference clip
@@ -19,12 +21,13 @@ meanings, type registers, spacing, the safe-bottom rule.
 
 ## Input
 
-The argument is the reference, in any of three forms:
+The argument is the reference, in any of four forms:
 
 ```
 /video-from-reference refs/clip.mp4                    a local file
 /video-from-reference https://www.tiktok.com/@x/video/123   a URL
 /video-from-reference idempotency keys                 just a topic, no clip
+/video-from-reference                                  nothing — you pick the topic
 ```
 
 **A URL** gets fetched first — `yt-dlp` is installed:
@@ -37,8 +40,9 @@ Keep downloads in `refs/` and treat them strictly as measurement input. They are
 someone else's video: measure the structure and timing, never ship their footage,
 their audio bed, or their handle in the output.
 
-**No argument at all?** Ask which of the three it is before doing anything — the loop
-below branches hard on whether a clip exists.
+**No argument at all?** Do not ask what to build — **propose it**. See *When there is no
+argument* at the end of this file. Only stop to ask if the message reads like a clip
+failed to attach.
 
 ## The loop
 
@@ -178,3 +182,68 @@ already-rendered project renders. Re-check any project you sync.
 Same loop minus steps 1–3. Read `kit/frame.md`, pick the structure that fits the idea
 (two lanes for a comparison, one lane plus an arc for a sequence), and author directly.
 The house style is the constant; the topic is the variable.
+
+## When there is no argument — propose the topic yourself
+
+A request for "a video" with nothing attached is a request for you to pick. Come back
+with candidates, not with a question.
+
+**Scope: working developers, always.** Backend, frontend, databases, Docker and
+containers, CI/CD, infrastructure, networking, caching, concurrency, observability.
+Not product strategy, not career advice, not framework opinions. The viewer is someone
+who already writes code and wants the *mechanism* they have been using without quite
+seeing.
+
+**Keep the demo small.** Four rows, three services, two lanes — it has to sit on one
+1080×1920 frame and stay readable at thumbnail size in a feed. If the honest picture
+needs eight boxes, the topic is too big: split it and take the half that carries the
+misconception. `videos/inner-join` shows the shape — four users, five orders, one
+clause.
+
+### Four filters, applied in order
+
+1. **Is there a wrong mental model to correct?** Every video in this repo pays off at
+   the moment an assumption breaks — the retry that charges twice, the row that is kept
+   anyway, the order nobody can claim. A topic with no misconception is a definition,
+   and a definition does not need ten seconds of motion. Drop it.
+2. **Can one picture show it changing?** The idea has to live in something that moves:
+   rows appearing, a token descending, bars overlapping, a counter climbing. If the only
+   honest rendering is prose or a wall of code, it is a blog post — and code
+   walkthroughs already belong to `hyperframes add code-typing | code-diff`.
+3. **Is it already built?** `ls videos/` first. Do not re-cut a shipped topic. A
+   deliberate *sibling* is allowed and can be excellent (`inner-join` after `left-join`)
+   — but only when the shared frame makes the difference legible, and say so in the shot
+   plan.
+4. **Which archetype does it want, and when was that used last?** Read the table in
+   `kit/frame.md`. A topic usually admits one honest structure; when two fit, take the
+   least recently used. Rotation is what keeps the feed from going stale, so weight
+   candidates that exercise an under-used shape — `swim` has still never shipped.
+
+### How to propose
+
+Use `AskUserQuestion` with **three or four** candidates. Each option names the topic,
+the archetype it would use, and the **signature move** — the single shot the video is
+built around. A candidate with no signature move is not ready to propose; keep looking
+rather than padding the list. The user should be choosing between shots, not titles.
+
+State briefly which one you would take and why, then let them pick. If they answer with
+something of their own, that wins.
+
+### Candidate bank
+
+A starting point, not a menu — anything you find that clears the four filters better
+beats what is listed here. Cross off whatever `videos/` already covers.
+
+| Domain | Candidates (archetype it wants) |
+| --- | --- |
+| **Database** | N+1 queries: 1 call becomes 101 (`swim`) · index vs full scan (`grid`) · transaction isolation levels (`matrix`) · deadlock from lock ordering (`swim`) · connection pooling under load (`swim`) |
+| **Backend** | retry with exponential backoff + jitter (`swim`) · circuit breaker closed/open/half-open (`stack`) · optimistic vs pessimistic locking (`swim`) · JWT vs session — where the state lives (`stack`) · webhook vs polling (`swim`) |
+| **Frontend** | debounce vs throttle on the same keystrokes (`swim`) · event bubbling vs capturing (`stack`) · CSR vs SSR vs SSG — when the HTML gets its content (`lanes`) · the CORS preflight nobody asked for (`swim`) |
+| **Docker** | image layers and cache invalidation — one changed line rebuilds four layers (`stack`) · container vs VM: what is shared (`stack`) · bind mount vs volume (`lanes`) · why `localhost` is not localhost (`topology`) |
+| **CI/CD** | blue-green vs rolling deploy (`swim`) · pipeline cache hit vs miss (`hero-stat`) · canary release 5% → 50% → 100% (`queue`) · trunk-based vs long-lived branch (`swim`) |
+| **Infrastructure** | DNS resolution walk: root → TLD → authoritative (`stack`) · TLS handshake round trips (`swim`) · CDN cache hit/miss at the edge (`stack`) · reverse vs forward proxy (`topology`) · horizontal vs vertical scaling (`queue`) |
+
+`matrix` and `hero-stat` are named in `kit/frame.md` and still unbuilt; `queue`,
+`topology` and `grid` are built project-local (`videos/load-balancing`,
+`videos/event-driven-architecture`, `videos/left-join`) and can be copied forward. Building a genuinely new archetype is fine and expected — say why in
+the shot plan, and leave it project-local until it has earned a second outing.
